@@ -1,2 +1,14 @@
-# tashenev-university
-Демонстрационный редизайн главной страницы Tashenev University
+# Tashenev University
+
+Демонстрационный редизайн главной страницы университета имени Жумабека Ахметулы Ташенева. Логотип, фотография и справочные сведения взяты с [официального сайта университета](https://tashenev.edu.kz/ru).
+
+## Локальный запуск
+
+Понадобятся Node.js 24 и pnpm 11.
+
+```sh
+pnpm install --frozen-lockfile
+pnpm dev
+```
+
+`pnpm build` проверяет типы и собирает статический сайт в `dist/`. GitHub Actions публикует сборку в GitHub Pages при обновлении ветки `main`.
