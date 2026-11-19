@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ArrowLeft, ArrowRight, ArrowUp, ExternalLink, MapPin, Menu, X } from 'lucide-react'
 import campus from './assets/campus.jpg'
 import coworking from './assets/coworking.jpg'
@@ -71,9 +71,11 @@ function Header({ page }: { page?: string }) {
           Меню
         </button>
         <nav id="site-nav" className="site-nav" aria-label="Разделы сайта" data-open={menuOpen}>
-          {sections.map(({ id, label }) => (
-            <a key={id} href={base + id + '/'} aria-current={page === id ? 'page' : undefined}>{label}</a>
-          ))}
+          <div className="site-nav-links">
+            {sections.map(({ id, label }) => (
+              <a key={id} href={base + id + '/'} aria-current={page === id ? 'page' : undefined}>{label}</a>
+            ))}
+          </div>
         </nav>
       </div>
     </header>
@@ -143,7 +145,7 @@ function Home() {
         </figure>
       </section>
 
-      <section id="about" tabIndex={-1} className="about shell section-space" aria-labelledby="about-title">
+      <section id="about" tabIndex={-1} className="about shell section-space" aria-labelledby="about-title" data-reveal>
         <h2 className="section-label" id="about-title">Об университете</h2>
         <div>
           <p className="about-name">{universityName}</p>
@@ -154,7 +156,7 @@ function Home() {
       </section>
 
       <section id="education" tabIndex={-1} className="education section-space" aria-labelledby="education-title">
-        <div className="shell education-inner">
+        <div className="shell education-inner" data-reveal>
           <div className="education-intro">
             <h2 id="education-title">Направления обучения</h2>
             <a className="text-link" href={base + 'education/'}>Все направления <ArrowRight size={16} aria-hidden="true" /></a>
@@ -171,7 +173,7 @@ function Home() {
       </section>
 
       <section id="students" tabIndex={-1} className="section-space students shell" aria-labelledby="students-title">
-        <div className="student-panel">
+        <div className="student-panel" data-reveal>
           <div className="student-content">
             <h2 id="students-title">Студентам</h2>
             <ResourceLinks items={resources} />
@@ -181,7 +183,7 @@ function Home() {
         </div>
       </section>
 
-      <section id="contacts" tabIndex={-1} className="contact-section shell" aria-labelledby="contacts-title">
+      <section id="contacts" tabIndex={-1} className="contact-section shell" aria-labelledby="contacts-title" data-reveal>
         <div className="home-section-heading">
           <h2 id="contacts-title">Контакты</h2>
           <a className="text-link" href={base + 'contacts/'}>Адреса корпусов <ArrowRight size={16} aria-hidden="true" /></a>
@@ -221,7 +223,7 @@ function AboutPage() {
           </div>
         </dl>
       </section>
-      <section className="shell campus-feature page-block" aria-labelledby="campus-title">
+      <section className="shell campus-feature page-block" aria-labelledby="campus-title" data-reveal>
         <figure>
           <img src={coworking} alt="Внутреннее пространство коворкинг-центра" width="1448" height="1086" loading="lazy" />
         </figure>
@@ -265,7 +267,7 @@ function StudentsPage() {
         </div>
         <LibraryPhoto />
       </section>
-      <section className="shell page-block student-support" aria-labelledby="support-title">
+      <section className="shell page-block student-support" aria-labelledby="support-title" data-reveal>
         <h2 id="support-title">Поддержка</h2>
         <ResourceLinks items={studentSupport} />
       </section>
@@ -279,7 +281,7 @@ function ContactsPage() {
       <PageHeading title="Контакты"><p>Шымкент, Казахстан</p></PageHeading>
       <div className="shell contact-section page-block">
         <ContactDetails />
-        <div className="campus-feature contact-feature">
+        <div className="campus-feature contact-feature" data-reveal>
           <figure>
             <img src={mainBuilding} alt="Главный корпус университета на проспекте Кунаева" width="1600" height="1066" loading="lazy" />
           </figure>
@@ -302,12 +304,29 @@ const pages = { about: AboutPage, education: EducationPage, students: StudentsPa
 export function App() {
   const page = document.documentElement.dataset.page as keyof typeof pages | undefined
   const Content = page ? pages[page] : Home
+  const main = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const observer = new IntersectionObserver(entries => {
+      for (const { target, isIntersecting } of entries) {
+        if (isIntersecting) {
+          target.setAttribute('data-revealed', '')
+          observer.unobserve(target)
+        }
+      }
+    }, { threshold: 0.08 })
+
+    main.current?.querySelectorAll('[data-reveal]').forEach(element => observer.observe(element))
+    return () => observer.disconnect()
+  }, [])
 
   return (
     <>
       <a className="skip-link" href="#content">Перейти к содержанию</a>
       <Header page={page} />
-      <main id="content" tabIndex={-1}>
+      <main id="content" tabIndex={-1} ref={main}>
         <Content />
       </main>
       <footer className="site-footer">
